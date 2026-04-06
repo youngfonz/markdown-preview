@@ -47,6 +47,36 @@ body {
   color: var(--text-secondary);
 }
 
+.divider-handle {
+  width: 6px;
+  cursor: col-resize;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.divider-handle:hover,
+.divider-handle:active {
+  background: var(--accent);
+}
+
+.divider-grip {
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.divider-handle:hover .divider-grip,
+.divider-handle:active .divider-grip {
+  background: white;
+  opacity: 0.9;
+}
+
 .preview-content {
   font-size: 15px;
   line-height: 1.75;
