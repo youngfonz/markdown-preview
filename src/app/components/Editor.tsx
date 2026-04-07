@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
@@ -48,6 +48,32 @@ function greet(name) {
 export default function Editor() {
   const [content, setContent] = useState(DEFAULT_CONTENT);
   const [copied, setCopied] = useState(false);
+  const [splitPercent, setSplitPercent] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const pct = ((e.clientX - rect.left) / rect.width) * 100;
+      setSplitPercent(Math.min(80, Math.max(20, pct)));
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }, []);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(content);
@@ -94,9 +120,9 @@ export default function Editor() {
       </header>
 
       {/* Split pane */}
-      <div className="flex flex-1 min-h-0">
+      <div ref={containerRef} className="flex flex-1 min-h-0">
         {/* Editor */}
-        <div className="flex-1 flex flex-col border-r" style={{ borderColor: "var(--border)" }}>
+        <div className="flex flex-col min-w-0" style={{ width: `${splitPercent}%` }}>
           <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-secondary)", background: "var(--bg-secondary)" }}>
             Markdown
           </div>
@@ -109,8 +135,16 @@ export default function Editor() {
           />
         </div>
 
+        {/* Drag handle */}
+        <div
+          onMouseDown={handleMouseDown}
+          className="divider-handle"
+        >
+          <div className="divider-grip" />
+        </div>
+
         {/* Preview */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-col min-w-0" style={{ width: `${100 - splitPercent}%` }}>
           <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-secondary)", background: "var(--bg-secondary)" }}>
             Preview
           </div>
