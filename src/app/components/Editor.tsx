@@ -96,7 +96,7 @@ export default function Editor() {
           <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-white text-sm" style={{ background: "var(--accent)" }}>
             P
           </div>
-          <span className="font-semibold text-sm tracking-tight">Pulse Markdown</span>
+          <span className="font-semibold text-sm tracking-tight font-[family-name:var(--font-display)]">Pulse Markdown</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs mr-2" style={{ color: "var(--text-secondary)" }}>
