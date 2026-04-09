@@ -49,7 +49,10 @@ export default function Editor() {
   const [content, setContent] = useState(DEFAULT_CONTENT);
   const [copied, setCopied] = useState(false);
   const [splitPercent, setSplitPercent] = useState(50);
+  const [draggingOver, setDraggingOver] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -75,6 +78,48 @@ export default function Editor() {
     document.addEventListener("mouseup", onMouseUp);
   }, []);
 
+  const loadFile = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === "string") {
+        setContent(text);
+        setFileName(file.name);
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  }, [loadFile]);
+
+  const handleOpenFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) loadFile(file);
+    e.target.value = "";
+  }, [loadFile]);
+
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(content);
     setCopied(true);
@@ -89,7 +134,29 @@ export default function Editor() {
   const charCount = content.length;
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full relative"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {draggingOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="text-4xl mb-3">Drop file here</div>
+            <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              .md, .txt, or any text file
+            </div>
+          </div>
+        </div>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.markdown,.txt,.text"
+        onChange={handleFileChange}
+        className="hidden"
+      />
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-center gap-2.5">
@@ -99,9 +166,21 @@ export default function Editor() {
           <span className="font-semibold text-sm tracking-tight font-[family-name:var(--font-display)]">Pulse Markdown</span>
         </div>
         <div className="flex items-center gap-2">
+          {fileName && (
+            <span className="text-xs mr-1 truncate max-w-[120px]" style={{ color: "var(--accent)" }}>
+              {fileName}
+            </span>
+          )}
           <span className="text-xs mr-2" style={{ color: "var(--text-secondary)" }}>
             {wordCount} words / {charCount} chars
           </span>
+          <button
+            onClick={handleOpenFile}
+            className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors hover:opacity-80"
+            style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
+          >
+            Open
+          </button>
           <button
             onClick={handleCopy}
             className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors hover:opacity-80"
