@@ -11,8 +11,8 @@
   --border: #e5e7eb;
   --text: #111827;
   --text-secondary: #6b7280;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
+  --accent: #E54D2E;
+  --accent-hover: #c9421f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,8 +22,8 @@
     --border: #2a2d3a;
     --text: #f1f3f5;
     --text-secondary: #8b8fa3;
-    --accent: #3b82f6;
-    --accent-hover: #60a5fa;
+    --accent: #F0613E;
+    --accent-hover: #f47654;
   }
 }
 
