@@ -62,6 +62,7 @@ const MD_TYPES = [
 const STORAGE_KEY = "pulse-md-tabs-v1";
 const OPENAI_KEY_STORAGE = "pulse-md-openai-key-v1";
 const TTS_VOICE = "nova"; // Warm female — OpenAI's most natural-sounding voice
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -223,7 +224,7 @@ export default function Editor() {
         activeFetchCtrlRef.current = ctrl;
         const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
         try {
-          const resp = await fetch("/api/tts", {
+          const resp = await fetch(`${BASE_PATH}/api/tts`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
