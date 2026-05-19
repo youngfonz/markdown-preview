@@ -64,6 +64,9 @@ const OPENAI_KEY_STORAGE = "pulse-md-openai-key-v1";
 const PASSCODE_STORAGE = "pulse-md-passcode-v1";
 const TTS_VOICE = "nova"; // Warm female — OpenAI's most natural-sounding voice
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+// Read-aloud (OpenAI TTS) is hidden in production by leaving NEXT_PUBLIC_TTS_ENABLED unset.
+// Set it to "1" locally to use the feature.
+const TTS_ENABLED = process.env.NEXT_PUBLIC_TTS_ENABLED === "1";
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -615,16 +618,18 @@ export default function Editor() {
           >
             {savedFlash ? "Saved!" : "Save"}
           </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="px-2 py-1.5 text-xs font-medium rounded-md border transition-colors hover:opacity-80"
-            style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
-            title="TTS settings"
-            aria-label="Settings"
-          >
-            ⚙
-          </button>
-          {ttsState === "idle" && (
+          {TTS_ENABLED && (
+            <button
+              onClick={() => setShowSettings(true)}
+              className="px-2 py-1.5 text-xs font-medium rounded-md border transition-colors hover:opacity-80"
+              style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
+              title="TTS settings"
+              aria-label="Settings"
+            >
+              ⚙
+            </button>
+          )}
+          {TTS_ENABLED && ttsState === "idle" && (
             <button
               onClick={speak}
               disabled={!content.trim()}
@@ -635,7 +640,7 @@ export default function Editor() {
               ▶ Read
             </button>
           )}
-          {ttsState === "loading" && (
+          {TTS_ENABLED && ttsState === "loading" && (
             <button
               onClick={stopSpeak}
               className="px-3 py-1.5 text-xs font-medium rounded-md border transition-colors hover:opacity-80"
@@ -645,7 +650,7 @@ export default function Editor() {
               {fetchStatus ? `Fetching ${fetchStatus}` : "Fetching audio…"}
             </button>
           )}
-          {ttsState === "playing" && (
+          {TTS_ENABLED && ttsState === "playing" && (
             <>
               <button
                 onClick={pauseSpeak}
@@ -663,7 +668,7 @@ export default function Editor() {
               </button>
             </>
           )}
-          {ttsState === "paused" && (
+          {TTS_ENABLED && ttsState === "paused" && (
             <>
               <button
                 onClick={resumeSpeak}
@@ -754,7 +759,7 @@ export default function Editor() {
       </div>
 
       {/* Settings dialog */}
-      {showSettings && (
+      {TTS_ENABLED && showSettings && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           onClick={() => setShowSettings(false)}
