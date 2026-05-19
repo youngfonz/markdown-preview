@@ -1,4 +1,14 @@
 export async function POST(request: Request) {
+  // If TTS_PASSCODE is set in the environment, require it as a header.
+  // This stops random visitors at fonz.sh/markdown from burning your OpenAI credits.
+  const requiredPasscode = process.env.TTS_PASSCODE;
+  if (requiredPasscode) {
+    const provided = request.headers.get("x-tts-passcode");
+    if (provided !== requiredPasscode) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const body = await request.json().catch(() => ({}));
   const text: string = (body.text ?? "").toString();
   const voice: string = (body.voice ?? "nova").toString();

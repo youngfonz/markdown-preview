@@ -61,6 +61,7 @@ const MD_TYPES = [
 
 const STORAGE_KEY = "pulse-md-tabs-v1";
 const OPENAI_KEY_STORAGE = "pulse-md-openai-key-v1";
+const PASSCODE_STORAGE = "pulse-md-passcode-v1";
 const TTS_VOICE = "nova"; // Warm female — OpenAI's most natural-sounding voice
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -129,6 +130,7 @@ export default function Editor() {
   const [ttsState, setTtsState] = useState<"idle" | "loading" | "playing" | "paused">("idle");
   const [fetchStatus, setFetchStatus] = useState<string>("");
   const [openaiKey, setOpenaiKey] = useState<string>("");
+  const [passcode, setPasscode] = useState<string>("");
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -151,6 +153,8 @@ export default function Editor() {
       }
       const k = localStorage.getItem(OPENAI_KEY_STORAGE);
       if (k) setOpenaiKey(k);
+      const p = localStorage.getItem(PASSCODE_STORAGE);
+      if (p) setPasscode(p);
     } catch {}
     setHydrated(true);
   }, []);
@@ -226,7 +230,10 @@ export default function Editor() {
         try {
           const resp = await fetch(`${BASE_PATH}/api/tts`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(passcode ? { "x-tts-passcode": passcode } : {}),
+            },
             body: JSON.stringify({
               text,
               voice: TTS_VOICE,
@@ -346,7 +353,7 @@ export default function Editor() {
       setFetchStatus("");
       setTtsState("idle");
     }
-  }, [content, openaiKey]);
+  }, [content, openaiKey, passcode]);
 
   const pauseSpeak = useCallback(() => {
     if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
@@ -791,6 +798,18 @@ export default function Editor() {
               spellCheck={false}
               autoFocus
             />
+            <label className="text-xs font-medium block mb-1 mt-3">
+              Passcode <span className="opacity-50">(only needed on the public site)</span>
+            </label>
+            <input
+              type="password"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-3 py-2 text-sm rounded-md border bg-transparent font-mono"
+              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              spellCheck={false}
+            />
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => {
@@ -808,6 +827,9 @@ export default function Editor() {
                 onClick={() => {
                   try {
                     if (openaiKey) localStorage.setItem(OPENAI_KEY_STORAGE, openaiKey);
+                    else localStorage.removeItem(OPENAI_KEY_STORAGE);
+                    if (passcode) localStorage.setItem(PASSCODE_STORAGE, passcode);
+                    else localStorage.removeItem(PASSCODE_STORAGE);
                   } catch {}
                   setShowSettings(false);
                 }}
